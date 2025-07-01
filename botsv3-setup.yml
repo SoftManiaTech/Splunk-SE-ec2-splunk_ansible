@@ -1,0 +1,101 @@
+---
+- name: Setup Splunk Standalone Server
+  hosts: splunk
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+
+  tasks:
+    - name: Ensure Splunk User Exists
+      user:
+        name: splunk
+        shell: /bin/bash
+        createhome: yes
+    
+    - name: Pause to ensure file download completion
+      pause:
+        seconds: 180
+    
+    - name: Download and Add Tutorial Data to Splunk Monitoring
+      become: yes
+      become_user: splunk
+      shell: |
+        cd /tmp
+        curl -o tutorialdata.zip https://docs.splunk.com/images/Tutorial/tutorialdata.zip
+        ls -l /tmp/tutorialdata.zip
+        /opt/splunk/bin/splunk add monitor /tmp/tutorialdata.zip -host_segment 3 -disabled 0 -auth admin:{{ splunk_instance.splunk_admin_password }}
+      args:
+        executable: /bin/bash
+
+    - name: Download and Install Splunk Sample Data Apps (Live EventGen)
+      become: yes
+      become_user: splunk
+      loop:
+        - "https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/eventgen_721.tgz"
+        - "https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/ta-apache_access_eventgen_103.tgz"
+        - "https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/ta-fwlog_eventgen_103.tgz"
+        - "https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/ta-squid_proxy_eventgen_103.tgz"
+      shell: |
+        cd /tmp
+        curl -O {{ item }}
+        /opt/splunk/bin/splunk install app "/tmp/{{ item | basename }}" -auth admin:{{ splunk_instance.splunk_admin_password }}
+      args:
+        executable: /bin/bash
+
+    - name: Download and Install Splunk BOTS v3 Dataset
+      become: yes
+      become_user: splunk
+      shell: |
+        cd /tmp
+        curl -O https://botsdataset.s3.amazonaws.com/botsv3/botsv3_data_set.tgz
+        /opt/splunk/bin/splunk install app "/tmp/botsv3_data_set.tgz" -auth admin:{{ splunk_instance.splunk_admin_password }}
+      args:
+        executable: /bin/bash
+
+
+    - name: Download and Install Additional Splunk Apps
+      become: yes
+      become_user: splunk
+      loop:
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/cisco-endpoint-security-analytics-cesa_407.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/code42-for-splunk-legacy_3012.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/decrypt_231.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/microsoft-365-app-for-splunk_331.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/osquery-app-for-splunk_060.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/sa-cim_vladiator_200.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-amazon-web-services-aws_791.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-cisco-asa_520.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-microsoft-azure_420.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-microsoft-cloud-services_543.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-microsoft-office-365_480.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-microsoft-sysmon_1062.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-microsoft-windows_901.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-symantec-endpoint-protection_341.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-add-on-for-unix-and-linux_1000.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-app-for-stream_813.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-common-information-model-cim_602.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-es-content-update_511.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/splunk-security-essentials_381.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/ta-for-code42-app-for-splunk_3012.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/url-toolbox_194.tgz
+        - https://raw.githubusercontent.com/SoftManiaTech/Bots_V3_Splunkbase_apps/main/virustotal-workflow-actions-for-splunk_020.tgz
+      shell: |
+        cd /tmp
+        curl -O {{ item }}
+        /opt/splunk/bin/splunk install app "/tmp/{{ item | basename }}" -auth admin:{{ splunk_instance.splunk_admin_password }}
+      args:
+        executable: /bin/bash
+
+    - name: Ensure Splunk is running before restart
+      become: yes
+      become_user: splunk
+      shell: "/opt/splunk/bin/splunk status || /opt/splunk/bin/splunk start"
+      args:
+        executable: /bin/bash
+
+    - name: Restart Splunk
+      become: yes
+      become_user: root
+      shell: "/opt/splunk/bin/splunk restart"
+      args:
+        executable: /bin/bash
