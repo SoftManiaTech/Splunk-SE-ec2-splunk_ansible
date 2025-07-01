@@ -153,7 +153,7 @@ resource "local_file" "ansible_inventory" {
 
   content = <<EOF
 [splunk]
-${var.instance_name} ansible_host=${aws_instance.splunk_server.public_ip} ansible_user=ec2-user ansible_ssh_private_key_file=${abspath("${path.module}/${local.final_key_name}.pem")}
+${replace(var.instance_name, " ", "-")} ansible_host=${aws_instance.splunk_server.public_ip} ansible_user=ec2-user ansible_ssh_private_key_file=${abspath("${path.module}/${local.final_key_name}.pem")}
 EOF
 
   depends_on = [null_resource.wait_for_ssh_ready]
@@ -166,7 +166,7 @@ resource "local_file" "ansible_group_vars" {
   content = <<EOF
 ---
 splunk_instance:
-  name: ${var.instance_name}
+  name: ${replace(var.instance_name, " ", "-")}
   private_ip: ${aws_instance.splunk_server.private_ip}
   instance_id: ${aws_instance.splunk_server.id}
   splunk_admin_password: admin123
