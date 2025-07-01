@@ -66,8 +66,10 @@ systemctl daemon-reexec
 systemctl daemon-reload
 systemctl enable splunk
 
+/opt/splunk/bin/splunk enable boot-start -user splunk
+
 # Start the Splunk service
-systemctl start splunk
+/opt/splunk/bin/splunk start
 
 echo "Splunk setup completed successfully. Transparent Huge Pages (THP) disabled and Splunk is running as a systemd service."
 echo "Reboot the system to fully apply THP settings."
