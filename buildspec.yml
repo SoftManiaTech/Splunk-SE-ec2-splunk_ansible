@@ -25,7 +25,6 @@ phases:
       - chmod +x scripts/check_key.sh
       - terraform apply -auto-approve
       - echo "Waiting for EC2 SSH to be ready..."
-      - sleep 60
       - echo "Running Ansible Playbook..."
       - ansible-playbook -i inventory.ini botsv3-setup.yml --ssh-common-args='-o StrictHostKeyChecking=no'
 
