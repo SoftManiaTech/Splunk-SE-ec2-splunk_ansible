@@ -1,16 +1,33 @@
 version: 0.2
 
+cache:
+  paths:
+    - /root/terraform_cache/**/*
+    - /root/.ansible_cache/**/*
+
 phases:
   install:
     runtime-versions:
       python: 3.8
     commands:
-      - echo Installing Terraform and Ansible...
-      - yum install -y unzip wget ansible
-      - wget https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip
-      - unzip terraform_1.5.7_linux_amd64.zip
-      - mv terraform /usr/local/bin/
+      - echo Installing Terraform and Ansible with cache...
+      - mkdir -p /root/terraform_cache /root/.ansible_cache
+      - if [ ! -f /root/terraform_cache/terraform ]; then
+          echo "Terraform not in cache. Downloading..." &&
+          wget https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip &&
+          unzip terraform_1.5.7_linux_amd64.zip -d /root/terraform_cache &&
+          chmod +x /root/terraform_cache/terraform;
+        else
+          echo "Terraform found in cache.";
+        fi
+      - export PATH=$PATH:/root/terraform_cache
       - terraform --version
+      - if ! ansible --version > /dev/null 2>&1; then
+          echo "Installing Ansible..." &&
+          yum install -y unzip wget ansible;
+        else
+          echo "Ansible already installed.";
+        fi
       - ansible --version
 
   pre_build:
