@@ -33,7 +33,7 @@ phases:
   pre_build:
     commands:
       - echo "Downloading dynamic tfvars from S3..."
-      - aws s3 cp s3://splunk-deployment-test/$TFVARS_S3_KEY terraform.tfvars
+      - aws s3 cp s3://splunk-deployment-prod/$TFVARS_S3_KEY terraform.tfvars
       - echo "Pre-build phase complete."
 
   build:
