@@ -33,7 +33,8 @@ data "external" "key_check" {
 }
 
 locals {
-  final_key_name = data.external.key_check.result.final_key_name
+  raw_key_name    = data.external.key_check.result.final_key_name
+  final_key_name  = replace(local.raw_key_name, " ", "-")
 }
 
 # Generate PEM key
